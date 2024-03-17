@@ -1,0 +1,8 @@
+{
+    "java.compile.nullAnalysis.mode": "automatic",
+    "cSpell.words": [
+        "cupertino",
+        "Schyler"
+    ],
+    "java.configuration.updateBuildConfiguration": "interactive"
+}
