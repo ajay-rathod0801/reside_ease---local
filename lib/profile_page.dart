@@ -1,5 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:reside_ease/add_home.dart';
+import 'package:reside_ease/login_screen.dart';
 import 'package:reside_ease/members.dart';
 import 'package:reside_ease/edit_profile.dart';
 
@@ -8,6 +11,14 @@ class ProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    void _logout() async {
+      await FirebaseAuth.instance.signOut();
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => LoginScreen()),
+      );
+    }
+
     return MaterialApp(
       home: Scaffold(
         // appBar: const TopAppBar(),
@@ -17,8 +28,7 @@ class ProfilePage extends StatelessWidget {
           color: const Color(0xFFF9F9FF),
           child: ListView(
             children: [
-              _buildProfileImage(
-              ),
+              _buildProfileImage(),
               _buildProfileDetails(),
               _buildEditProfileButton(() {
                 navigateWithTransition(context, const EditProfile());
@@ -65,16 +75,22 @@ class ProfilePage extends StatelessWidget {
               SizedBox(
                 height: 10.0,
               ),
-              _buildLogoutButton(
-                title: 'Logout',
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Logout Clicked'),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: ElevatedButton.icon(
+                  onPressed: _logout,
+                  icon: Icon(Icons.logout_outlined),
+                  label: Text('Logout'),
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.all(12),
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                    alignment: Alignment.center,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10.0),
                     ),
-                  ); // Handle the Settings card tap
-                },
-                logoImagePath: 'assets/icons/logout.png',
+                  ),
+                ),
               ),
             ],
           ),
@@ -110,7 +126,6 @@ class ProfilePage extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(left: 16, top: 10),
       child: GestureDetector(
-        
         child: Container(
           width: 200,
           height: 200,
@@ -167,12 +182,28 @@ class ProfilePage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Padding(
-              padding: const EdgeInsets.only(top: 10),
-              child: Text(
-                'Abhishek Lal',
-                style: _textStyle(32, FontWeight.w400),
-              ),
-            ),
+                padding: const EdgeInsets.only(top: 10),
+                child: FutureBuilder<DocumentSnapshot>(
+                  future: FirebaseFirestore.instance
+                      .collection('users')
+                      .doc(FirebaseAuth.instance.currentUser!.uid)
+                      .get(),
+                  builder: (BuildContext context,
+                      AsyncSnapshot<DocumentSnapshot> snapshot) {
+                    if (snapshot.connectionState == ConnectionState.done) {
+                      Map<String, dynamic> data =
+                          snapshot.data!.data() as Map<String, dynamic>;
+                      return Text(
+                        data['name'],
+                        style: _textStyle(32, FontWeight.w400),
+                      );
+                    }
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return CircularProgressIndicator();
+                    }
+                    return Text('Error: ${snapshot.error}');
+                  },
+                )),
             Padding(
               padding: const EdgeInsets.only(top: 10),
               child: Text(
@@ -257,67 +288,6 @@ class ProfilePage extends StatelessWidget {
                     height: 30,
                     decoration: BoxDecoration(
                       // color: const Color(0xFFD9D9D9),
-                      image: DecorationImage(
-                        image: AssetImage(logoImagePath),
-                        fit: BoxFit.scaleDown,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 25),
-                Container(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          color: Colors.black,
-                          fontSize: 20,
-                          fontFamily: 'Roboto',
-                          fontWeight: FontWeight.w500,
-                          height: 0.10,
-                          letterSpacing: 0.10,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLogoutButton(
-      {required String title,
-      required VoidCallback onTap,
-      required String logoImagePath}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-      child: GestureDetector(
-        onTap: onTap,
-        child: Card(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-          color: Colors.red,
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 8.0),
-                  child: Container(
-                    width: 30,
-                    height: 30,
-                    decoration: BoxDecoration(
-                      color: Colors.red,
                       image: DecorationImage(
                         image: AssetImage(logoImagePath),
                         fit: BoxFit.scaleDown,

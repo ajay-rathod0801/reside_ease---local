@@ -1,233 +1,186 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:dio/dio.dart';
-
-import 'package:reside_ease/otp_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:reside_ease/widgets/bottom_navigation.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
-
   @override
-  State<StatefulWidget> createState() {
-    return LoginScreenState();
-  }
+  _LoginScreenState createState() => _LoginScreenState();
 }
 
-// create a login screen state
-class LoginScreenState extends State<LoginScreen> {
-  // create a form key
+class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-
-  // create a text editing controller
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _nameController = TextEditingController();
   final _usernameController = TextEditingController();
+  bool _isSignIn = true;
+  bool _isVerifying = false;
 
-  // create a focus node
-  final _usernameFocusNode = FocusNode();
-
-  final Dio _dio = Dio();
-
-  @override
-  void initState() {
-    super.initState();
-
-    _usernameFocusNode.addListener(() {
-      if (_usernameFocusNode.hasFocus) {
-        _usernameController.clear();
+  Future<void> _register() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isVerifying = true;
+      });
+      try {
+        UserCredential userCredential =
+            await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: _emailController.text,
+          password: _passwordController.text,
+        );
+        // Store additional details in Firestore
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userCredential.user!.uid)
+            .set({
+          'name': _nameController.text,
+          'username': _usernameController.text,
+          'email': _emailController.text,
+        });
+        // Navigate to ParentWidget if registration is successful
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => ParentWidget()),
+        );
+      } on FirebaseAuthException catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message ?? 'An unknown error occurred.')),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('An unknown error occurred.')),
+        );
+      } finally {
+        setState(() {
+          _isVerifying = false;
+        });
       }
-    });
+    }
   }
 
-  @override
-  void dispose() {
-    _usernameController.dispose();
-
-    // dispose the focus nodes
-    _usernameFocusNode.dispose();
-
-    super.dispose();
+  Future<void> _signIn() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isVerifying = true;
+      });
+      try {
+        UserCredential userCredential =
+            await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: _emailController.text,
+          password: _passwordController.text,
+        );
+        // Navigate to ParentWidget if sign in successful
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => ParentWidget()),
+        );
+      } on FirebaseAuthException catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message ?? 'An unknown error occurred.')),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('An unknown error occurred.')),
+        );
+      } finally {
+        setState(() {
+          _isVerifying = false;
+        });
+      }
+    }
   }
-
-  // Future<void> _login() async {
-  //   try {
-  //     final response = await _dio.post(
-  //       // To be replaced by actual API URL
-  //       'https://api.resideease.com/api/v1/auth/login',
-  //       data: {
-  //         'username': _usernameController.text,
-  //       },
-  //     );
-  //     print(response.data);
-  //   } on DioException catch (e) {
-  //     print(e.response!.data);
-  //   }
-  // }
 
   @override
   Widget build(BuildContext context) {
-    // create
-    return SafeArea(
-      child: Scaffold(
-        body: Padding(
+    return Scaffold(
+      body: Form(
+        key: _formKey,
+        child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Form(
-            key: _formKey,
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  const SizedBox(
-                    height: 180,
-                  ),
-                  const Text(
-                    'Sign up to Reside-Ease',
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 50,
-                  ),
-                  Theme(
-                    data: Theme.of(context).copyWith(
-                      colorScheme: Theme.of(context)
-                          .colorScheme
-                          .copyWith(primary: Colors.blue),
-                    ),
-                    child: TextFormField(
-                      controller: _usernameController,
-                      focusNode: _usernameFocusNode,
-                      decoration: InputDecoration(
-                        labelText: 'Enter Phone Number or Email ID',
-                        filled: true,
-                        fillColor: Colors.blue.shade50,
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter a phone number or email ID';
-                        }
-                        // regex pattern for email
-                        String emailPattern =
-                            r'^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$';
-                        RegExp emailRegex = RegExp(emailPattern);
-
-                        // regex pattern for phone number (Indian format)
-                        String phonePattern = r'^[6-9]\d{9}$';
-                        RegExp phoneRegex = RegExp(phonePattern);
-
-                        if (!emailRegex.hasMatch(value) &&
-                            !phoneRegex.hasMatch(value)) {
-                          return 'Please enter a valid phone number or email ID';
-                        }
-                        return null;
-                      },
-                      cursorColor: Colors.black,
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 20,
-                  ),
-                  OutlinedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        // _login();
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => OtpScreen(
-                              phoneNumber: _usernameController.text,
-                            ),
-                          ),
-                        );
-                      }
-                    },
-                    style: OutlinedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      side: const BorderSide(
-                        color: Colors.black,
-                        width: 1,
-                      ),
-                    ),
-                    child: const Text(
-                      'Continue',
-                      style: TextStyle(
-                        color: Colors.black,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 30,
-                  ),
-                  const Divider(
-                    thickness: 1,
-                  ),
-                  const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'OR',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(
-                    height: 30,
-                  ),
-                  OutlinedButton.icon(
-                    onPressed: () {},
-                    icon: Image.asset(
-                      'assets/icons/icons_google.png',
-                      width: 24,
-                      height: 24,
-                    ),
-                    label: const Text(
-                      'Continue with Google',
-                      style: TextStyle(
-                        color: Colors.black,
-                      ),
-                    ),
-                  ),
-                  OutlinedButton.icon(
-                    onPressed: () {},
-                    icon: const Icon(
-                      Icons.facebook,
-                      color: Colors.blue,
-                    ),
-                    label: const Text(
-                      'Continue with Facebook',
-                      style: TextStyle(
-                        color: Colors.black,
-                      ),
-                    ),
-                  ),
-                  OutlinedButton.icon(
-                    onPressed: () {},
-                    icon: const Icon(
-                      Icons.apple_outlined,
-                      color: Colors.black,
-                    ),
-                    label: const Text(
-                      'Continue with Apple',
-                      style: TextStyle(
-                        color: Colors.black,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 16,
-                  ),
-                  const Text(
-                    'Already registered? Scan QR Code',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Text(
+                _isSignIn ? 'Sign In' : 'Sign Up',
+                style: TextStyle(fontSize: 38, fontWeight: FontWeight.w600),
               ),
-            ),
+              SizedBox(height: 50),
+              TextFormField(
+                controller: _emailController,
+                decoration: InputDecoration(labelText: 'Email', filled: true),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your email';
+                  }
+                  return null;
+                },
+                enabled: !_isVerifying,
+              ),
+              SizedBox(height: 10),
+              TextFormField(
+                controller: _passwordController,
+                decoration:
+                    InputDecoration(labelText: 'Password', filled: true),
+                obscureText: true,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your password';
+                  }
+                  return null;
+                },
+                enabled: !_isVerifying,
+              ),
+              SizedBox(height: 10),
+              if (!_isSignIn)
+                TextFormField(
+                  controller: _nameController,
+                  decoration: InputDecoration(labelText: 'Name', filled: true),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your name';
+                    }
+                    return null;
+                  },
+                  enabled: !_isVerifying,
+                ),
+              SizedBox(height: 10),
+              if (!_isSignIn)
+                TextFormField(
+                  controller: _usernameController,
+                  decoration:
+                      InputDecoration(labelText: 'Username', filled: true),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your username';
+                    }
+                    return null;
+                  },
+                  enabled: !_isVerifying,
+                ),
+              TextButton(
+                onPressed: () {
+                  setState(() {
+                    _isSignIn = !_isSignIn;
+                  });
+                },
+                child: Text(_isSignIn
+                    ? 'New user? Sign up instead'
+                    : 'Already a user? Sign in instead'),
+              ),
+              ElevatedButton(
+                onPressed:
+                    _isVerifying ? null : (_isSignIn ? _signIn : _register),
+                child: _isVerifying
+                    ? SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.0,
+                        ),
+                      )
+                    : Text(_isSignIn ? 'Sign In' : 'Sign Up'),
+              ),
+            ],
           ),
         ),
       ),

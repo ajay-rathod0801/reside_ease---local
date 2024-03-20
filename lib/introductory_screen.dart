@@ -43,12 +43,12 @@ class IntroductoryScreenState extends State<IntroductoryScreen> {
                 setState(() {
                   isButtonClicked = true;
                 });
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const LoginScreen(),
-                  ),
-                );
+                
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => LoginScreen()),
+                  );
+                
               },
               style: ElevatedButton.styleFrom(
                 shape: RoundedRectangleBorder(
