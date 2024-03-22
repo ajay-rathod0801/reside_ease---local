@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:reside_ease/add_home.dart';
+import 'package:reside_ease/introductory_screen.dart';
 import 'package:reside_ease/login_screen.dart';
 import 'package:reside_ease/members.dart';
 import 'package:reside_ease/edit_profile.dart';
@@ -15,7 +16,7 @@ class ProfilePage extends StatelessWidget {
       await FirebaseAuth.instance.signOut();
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => LoginScreen()),
+        MaterialPageRoute(builder: (context) => IntroductoryScreen()),
       );
     }
 

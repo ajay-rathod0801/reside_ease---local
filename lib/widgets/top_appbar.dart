@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:reside_ease/conversation_screen.dart';
 
 class TopAppBar extends StatelessWidget implements PreferredSizeWidget {
   const TopAppBar({Key? key}) : super(key: key);
@@ -59,11 +60,13 @@ class TopAppBar extends StatelessWidget implements PreferredSizeWidget {
           icon: const Icon(Icons.message_rounded, color: Colors.black),
           tooltip: 'Show Snackbar',
           onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Message Clicked'),
-              ),
-            );
+            // ScaffoldMessenger.of(context).showSnackBar(
+            //   const SnackBar(
+            //     content: Text('Message Clicked'),
+            //   ),
+            // );
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => ConversationScreen()));
           },
         ),
       ],
