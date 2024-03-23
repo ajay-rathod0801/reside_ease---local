@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
+
 import 'package:reside_ease/widgets/card_big.dart';
 import 'package:reside_ease/widgets/card_small.dart';
 import 'package:reside_ease/widgets/horizontal_card.dart';
 import 'package:reside_ease/widgets/top_appbar.dart';
 
+import 'package:url_launcher/url_launcher.dart';
+
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
-
-  // static const String routeName = '/home';
 
   @override
   Widget build(BuildContext context) {
@@ -35,32 +36,38 @@ class HomeScreen extends StatelessWidget {
                 image: 'assets/icons/avatar.png',
               ),
               const SizedBox(height: 8),
-              const SingleChildScrollView(
+              SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
                     SmallCard(
                       title: 'Invite Guests',
                       image: 'assets/icons/invite.png',
-                      // route: '/ten_digit_code',
                     ),
                     SizedBox(width: 8),
                     SmallCard(
                       title: 'Visitor Log',
                       image: 'assets/icons/log.png',
-                      // route: '/login',
                     ),
                     SizedBox(width: 8),
-                    SmallCard(
-                      title: 'Call Gate',
-                      image: 'assets/icons/call.png',
-                      // route: '/register',
+                    GestureDetector(
+                      onTap: () async {
+                        const url = 'tel:'; // Add your society's gate number here
+                        if (await canLaunch(url)) {
+                          await launch(url);
+                        } else {
+                          throw 'Could not launch $url';
+                        }
+                      },
+                      child: SmallCard(
+                        title: 'Call Gate',
+                        image: 'assets/icons/call.png',
+                      ),
                     ),
                     SizedBox(width: 8),
                     SmallCard(
                       title: 'SOS',
                       image: 'assets/icons/SOS.png',
-                      // route: '/otp',
                     ),
                   ],
                 ),
