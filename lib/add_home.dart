@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import 'add_home_details.dart';
@@ -10,8 +12,6 @@ class AddHome extends StatefulWidget {
 }
 
 class _AddHomeState extends State<AddHome> {
-  List<Map<String, String>> Homes = [];
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -32,66 +32,90 @@ class _AddHomeState extends State<AddHome> {
             children: <Widget>[
               Padding(
                 padding: EdgeInsets.all(16.0),
-                child: Homes.isEmpty
-                    ? Text(
-                        "you haven't added any Additional properties.",
+                child: StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('homes')
+                      .where('userId',
+                          isEqualTo: FirebaseAuth.instance.currentUser!.uid)
+                      .snapshots(),
+                  builder: (BuildContext context,
+                      AsyncSnapshot<QuerySnapshot> snapshot) {
+                    if (snapshot.hasError) {
+                      return Text('Something went wrong');
+                    }
+
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Text("Loading");
+                    }
+
+                    if (snapshot.data!.docs.isEmpty) {
+                      return Text(
+                        "You haven't added any additional properties yet!",
                         style: TextStyle(
                           fontSize: 20,
                         ),
-                      )
-                    : Column(
-                        children: Homes.map((Homes) {
-                          return Container(
-                            width: double.infinity,
-                            child: Card(
-                              color: Colors.blue.shade50,
-                              child: Padding(
-                                padding: EdgeInsets.all(16.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      '${Homes['Society']}',
-                                      style: TextStyle(
-                                        fontSize: 22,
-                                      ),
+                      );
+                    }
+
+                    return Column(
+                      children:
+                          snapshot.data!.docs.map((DocumentSnapshot document) {
+                        Map<String, dynamic> home =
+                            document.data() as Map<String, dynamic>;
+                        return Container(
+                          width: double.infinity,
+                          child: Card(
+                            color: Colors.blue.shade50,
+                            child: Padding(
+                              padding: EdgeInsets.all(16.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${home['Society']}',
+                                    style: TextStyle(
+                                      fontSize: 22,
                                     ),
-                                    const SizedBox(
-                                      height: 8,
+                                  ),
+                                  const SizedBox(
+                                    height: 8,
+                                  ),
+                                  Text(
+                                    '${home['Tower']} - ${home['Flat Number']}',
+                                    style: TextStyle(
+                                      fontSize: 16,
                                     ),
-                                    Text(
-                                      '${Homes['Tower']} - ${Homes['Flat Number']}',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                      ),
+                                  ),
+                                  Text(
+                                    '${home['City']}',
+                                    style: TextStyle(
+                                      fontSize: 16,
                                     ),
-                                    Text(
-                                      '${Homes['City']}',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                      ),
+                                  ),
+                                  Text(
+                                    '${home['Occupancy Status']}',
+                                    style: TextStyle(
+                                      fontSize: 16,
                                     ),
-                                    Text(
-                                      '${Homes['Occupancy Status']}',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                    IconButton(
-                                      icon: Icon(Icons.delete),
-                                      onPressed: () {
-                                        setState(() {
-                                          Homes.remove(Homes);
-                                        });
-                                      },
-                                    ),
-                                  ],
-                                ),
+                                  ),
+                                  IconButton(
+                                    icon: Icon(Icons.delete),
+                                    onPressed: () {
+                                      FirebaseFirestore.instance
+                                          .collection('homes')
+                                          .doc(document.id)
+                                          .delete();
+                                    },
+                                  ),
+                                ],
                               ),
                             ),
-                          );
-                        }).toList(),
-                      ),
+                          ),
+                        );
+                      }).toList(),
+                    );
+                  },
+                ),
               ),
               OutlinedButton.icon(
                 style: OutlinedButton.styleFrom(
@@ -112,14 +136,13 @@ class _AddHomeState extends State<AddHome> {
                   );
 
                   if (result != null) {
-                    setState(() {
-                      Homes.add({
-                        'City': result['City'],
-                        'Society': result['Society'],
-                        'Tower': result['Tower'],
-                        'Flat Number': result['Flat Number'],
-                        'Occupancy Status': result['Occupancy Status'],
-                      });
+                    FirebaseFirestore.instance.collection('homes').add({
+                      'userId': FirebaseAuth.instance.currentUser!.uid,
+                      'City': result['City'],
+                      'Society': result['Society'],
+                      'Tower': result['Tower'],
+                      'Flat Number': result['Flat Number'],
+                      'Occupancy Status': result['Occupancy Status'],
                     });
                   }
                 },

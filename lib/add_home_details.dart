@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class AddHomeDetails extends StatefulWidget {
@@ -178,14 +180,25 @@ class _AddHomeDetailsState extends State<AddHomeDetails> {
                   width: 1,
                 ),
               ),
+              // onPressed: () {
+              //   Navigator.pop(context, {
+              //     'City': _dropdownValueCity,
+              //     'Society': _dropdownValueSociety,
+              //     'Tower': _dropdownValueTower,
+              //     'Flat Number': _dropdownValueFlatNumber,
+              //     'Occupancy Status': _dropdownValueOccupancyStatus,
+              //   });
+              // },
               onPressed: () {
-                Navigator.pop(context, {
+                FirebaseFirestore.instance.collection('homes').add({
+                  'userId': FirebaseAuth.instance.currentUser!.uid,
                   'City': _dropdownValueCity,
                   'Society': _dropdownValueSociety,
                   'Tower': _dropdownValueTower,
                   'Flat Number': _dropdownValueFlatNumber,
                   'Occupancy Status': _dropdownValueOccupancyStatus,
                 });
+                Navigator.pop(context);
               },
               child: const Text(
                 'Add Homes',
