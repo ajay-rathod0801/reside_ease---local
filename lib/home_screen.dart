@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:reside_ease/visitors_log_screen.dart';
 
 import 'package:reside_ease/widgets/card_big.dart';
 import 'package:reside_ease/widgets/card_small.dart';
@@ -45,14 +47,25 @@ class HomeScreen extends StatelessWidget {
                       image: 'assets/icons/invite.png',
                     ),
                     SizedBox(width: 8),
-                    SmallCard(
-                      title: 'Visitor Log',
-                      image: 'assets/icons/log.png',
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => VisitorLogsScreen(),
+                          ),
+                        );
+                      
+                      },
+                      child: SmallCard(
+                        title: 'Visitor Log',
+                        image: 'assets/icons/log.png',
+                      ),
                     ),
                     SizedBox(width: 8),
                     GestureDetector(
                       onTap: () async {
-                        const url = 'tel:'; // Add your society's gate number here
+                        const url = 'tel: +919426130833'; // Add your society's gate number here
                         if (await canLaunch(url)) {
                           await launch(url);
                         } else {

@@ -35,6 +35,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Conversations'),
+        backgroundColor: Colors.blue.shade100,
       ),
       body: chats.isEmpty
           ? Center(
@@ -109,7 +110,8 @@ class UsersScreen extends StatelessWidget {
     final String currentUserId = FirebaseAuth.instance.currentUser!.uid;
     return Scaffold(
       appBar: AppBar(
-        title: Text('Users'),
+        title: Text('Reside-Ease Users'),
+        backgroundColor: Colors.blue.shade100,
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance.collection('users').snapshots(),

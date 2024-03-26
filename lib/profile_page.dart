@@ -1,9 +1,10 @@
+import 'package:flutter/material.dart';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
+
 import 'package:reside_ease/add_home.dart';
 import 'package:reside_ease/introductory_screen.dart';
-import 'package:reside_ease/login_screen.dart';
 import 'package:reside_ease/members.dart';
 import 'package:reside_ease/edit_profile.dart';
 
@@ -24,6 +25,7 @@ class ProfilePage extends StatelessWidget {
       home: Scaffold(
         // appBar: const TopAppBar(),
         body: Container(
+          padding: const EdgeInsets.only(top: 40),
           width: 400,
           height: 800,
           color: const Color(0xFFF9F9FF),
@@ -124,53 +126,31 @@ class ProfilePage extends StatelessWidget {
   }
 
   Widget _buildProfileImage() {
-    return Padding(
-      padding: const EdgeInsets.only(left: 16, top: 10),
-      child: GestureDetector(
-        child: Container(
-          width: 200,
-          height: 200,
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            image: DecorationImage(
-              image: AssetImage('assets/profile_image.png'),
-              fit: BoxFit.scaleDown,
+    return FutureBuilder<DocumentSnapshot>(
+      future: FirebaseFirestore.instance
+          .collection('users')
+          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .get(),
+      builder:
+          (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          Map<String, dynamic> data =
+              snapshot.data!.data() as Map<String, dynamic>;
+          String name = data['name'] ?? '';
+          return CircleAvatar(
+            backgroundColor: Colors.blue.shade100,
+            radius: 80,
+            child: Text(
+              name.isNotEmpty ? name[0].toUpperCase() : '',
+              style: TextStyle(fontSize: 60),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Color(0x19000000),
-                blurRadius: 12,
-                offset: Offset(0, 6),
-                spreadRadius: 0,
-              ),
-              BoxShadow(
-                color: Color(0x16000000),
-                blurRadius: 22,
-                offset: Offset(0, 22),
-                spreadRadius: 0,
-              ),
-              BoxShadow(
-                color: Color(0x0C000000),
-                blurRadius: 30,
-                offset: Offset(0, 50),
-                spreadRadius: 0,
-              ),
-              BoxShadow(
-                color: Color(0x02000000),
-                blurRadius: 36,
-                offset: Offset(0, 89),
-                spreadRadius: 0,
-              ),
-              BoxShadow(
-                color: Color(0x00000000),
-                blurRadius: 39,
-                offset: Offset(0, 139),
-                spreadRadius: 0,
-              ),
-            ],
-          ),
-        ),
-      ),
+          );
+        }
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator();
+        }
+        return Text('Error: ${snapshot.error}');
+      },
     );
   }
 

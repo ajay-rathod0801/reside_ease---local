@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shimmer/shimmer.dart';
 
-
 class ChatScreen extends StatefulWidget {
   final String userId;
   final String receiverId;
@@ -15,7 +14,7 @@ class ChatScreen extends StatefulWidget {
   _ChatScreenState createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatScreenState extends State <ChatScreen> {
   final TextEditingController _controller = TextEditingController();
 
   @override
@@ -24,16 +23,29 @@ class _ChatScreenState extends State<ChatScreen> {
     super.dispose();
   }
 
+    void _sendMessage() {
+    if (_controller.text.isNotEmpty) {
+      FirebaseFirestore.instance.collection('messages').add({
+        'text': _controller.text,
+        'senderId': FirebaseAuth.instance.currentUser!.uid,
+        'receiverId': widget.receiverId,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+      _controller.clear();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('${widget.receiverId}'),
+        backgroundColor: Colors.blue.shade100,
       ),
       body: Column(
-        children: <Widget>[
+        children: [
           Expanded(
-            child: StreamBuilder<QuerySnapshot>(
+            child: StreamBuilder(
               stream: FirebaseFirestore.instance
                   .collection('messages')
                   .where('senderId',
@@ -45,7 +57,6 @@ class _ChatScreenState extends State<ChatScreen> {
                 if (snapshot.hasError) {
                   return Text('Something went wrong');
                 }
-
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Text("Loading");
                 }
@@ -57,15 +68,22 @@ class _ChatScreenState extends State<ChatScreen> {
                     DocumentSnapshot message = snapshot.data!.docs[index];
                     return ListTile(
                       title: FutureBuilder<DocumentSnapshot>(
-                        future: FirebaseFirestore.instance.collection('users').doc(message['senderId']).get(),
-                        builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+                        future: FirebaseFirestore.instance
+                            .collection('users')
+                            .doc(message['senderId'])
+                            .get(),
+                        builder: (BuildContext context,
+                            AsyncSnapshot<DocumentSnapshot> snapshot) {
                           if (snapshot.hasError) {
                             return Text("Something went wrong");
                           }
 
-                          if (snapshot.connectionState == ConnectionState.done) {
-                            Map<String, dynamic> data = snapshot.data!.data() as Map<String, dynamic>;
-                            return Text("${data['name']}", style: TextStyle(color: Colors.blue.shade900));
+                          if (snapshot.connectionState ==
+                              ConnectionState.done) {
+                            Map<String, dynamic> data =
+                                snapshot.data!.data() as Map<String, dynamic>;
+                            return Text("${data['name']}",
+                                style: TextStyle(color: Colors.blue.shade900));
                           }
 
                           return Shimmer.fromColors(
@@ -111,15 +129,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    if (_controller.text.isNotEmpty) {
-                      FirebaseFirestore.instance.collection('messages').add({
-                        'text': _controller.text,
-                        'senderId': FirebaseAuth.instance.currentUser!.uid,
-                        'receiverId': widget.receiverId,
-                        'timestamp': FieldValue.serverTimestamp(),
-                      });
-                      _controller.clear();
-                    }
+                    _sendMessage();
                   },
                   child: Icon(Icons.send),
                   style: ElevatedButton.styleFrom(
