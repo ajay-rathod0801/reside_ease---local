@@ -1,5 +1,7 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:reside_ease/sos_screen.dart';
 import 'package:reside_ease/visitors_log_screen.dart';
 
 import 'package:reside_ease/widgets/card_big.dart';
@@ -55,7 +57,6 @@ class HomeScreen extends StatelessWidget {
                             builder: (context) => VisitorLogsScreen(),
                           ),
                         );
-                      
                       },
                       child: SmallCard(
                         title: 'Visitor Log',
@@ -65,7 +66,8 @@ class HomeScreen extends StatelessWidget {
                     SizedBox(width: 8),
                     GestureDetector(
                       onTap: () async {
-                        const url = 'tel: +919426130833'; // Add your society's gate number here
+                        const url =
+                            'tel: +919426130833'; // Add your society's gate number here
                         if (await canLaunch(url)) {
                           await launch(url);
                         } else {
@@ -78,9 +80,19 @@ class HomeScreen extends StatelessWidget {
                       ),
                     ),
                     SizedBox(width: 8),
-                    SmallCard(
-                      title: 'SOS',
-                      image: 'assets/icons/SOS.png',
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SOSScreen(),
+                          ),
+                        );
+                      },
+                      child: SmallCard(
+                        title: 'SOS',
+                        image: 'assets/icons/SOS.png',
+                      ),
                     ),
                   ],
                 ),

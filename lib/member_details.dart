@@ -34,7 +34,6 @@ class _MembersDetailsScreenState extends State<MembersDetailsScreen> {
                     decoration: InputDecoration(
                       labelText: 'First Name',
                       hintText: 'Enter First Name',
-                      fillColor: Colors.blue.shade50,
                       focusColor: Colors.black,
                       labelStyle: const TextStyle(color: Colors.black87),
                     ),
@@ -48,7 +47,6 @@ class _MembersDetailsScreenState extends State<MembersDetailsScreen> {
                     decoration: InputDecoration(
                       labelText: 'Middle Name',
                       hintText: 'Enter Middle Name',
-                      fillColor: Colors.blue.shade50,
                       focusColor: Colors.black,
                       labelStyle: const TextStyle(color: Colors.black87),
                     ),
@@ -62,7 +60,6 @@ class _MembersDetailsScreenState extends State<MembersDetailsScreen> {
                     decoration: InputDecoration(
                       labelText: 'Last Name',
                       hintText: 'Enter Last Name',
-                      fillColor: Colors.blue.shade50,
                       focusColor: Colors.black,
                       labelStyle: const TextStyle(color: Colors.black87),
                     ),
@@ -76,7 +73,6 @@ class _MembersDetailsScreenState extends State<MembersDetailsScreen> {
                     decoration: InputDecoration(
                       labelText: 'Relation',
                       hintText: 'Select Relationship with Person',
-                      fillColor: Colors.blue.shade50,
                       focusColor: Colors.black,
                       labelStyle: const TextStyle(color: Colors.black87),
                     ),
