@@ -67,7 +67,7 @@ class HomeScreen extends StatelessWidget {
                     GestureDetector(
                       onTap: () async {
                         const url =
-                            'tel: +919426130833'; // Add your society's gate number here
+                            'tel: +91'; // Add your society's gate number here
                         if (await canLaunch(url)) {
                           await launch(url);
                         } else {
