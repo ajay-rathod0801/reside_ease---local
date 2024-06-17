@@ -84,6 +84,8 @@ class _ConversationScreenState extends State<ConversationScreen> {
             ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
+        foregroundColor: Colors.white,
+        backgroundColor: Colors.blue.shade900,
         onPressed: () async {
           final result = await Navigator.push(
             context,
