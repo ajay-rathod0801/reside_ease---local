@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/intl.dart';
+
 class EditProfile extends StatefulWidget {
   const EditProfile({super.key});
 
@@ -8,7 +14,34 @@ class EditProfile extends StatefulWidget {
 }
 
 class _EditProfileState extends State<EditProfile> {
-  String? _selectedGender;
+  // experimental code
+  final phoneNumberController = TextEditingController();
+  final dobController = TextEditingController();
+  final genderController = TextEditingController();
+  final locationController = TextEditingController();
+  final dobNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    loadData();
+  }
+
+  Future<void> saveData() async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString('phoneNumber', phoneNumberController.text);
+    prefs.setString('dob', dobController.text);
+    prefs.setString('gender', genderController.text);
+    prefs.setString('location', locationController.text);
+  }
+
+  Future<void> loadData() async {
+    final prefs = await SharedPreferences.getInstance();
+    phoneNumberController.text = prefs.getString('phoneNumber') ?? '';
+    dobController.text = prefs.getString('dob') ?? '';
+    genderController.text = prefs.getString('gender') ?? '';
+    locationController.text = prefs.getString('location') ?? '';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,40 +72,31 @@ class _EditProfileState extends State<EditProfile> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             SizedBox(height: screenHeight * 0.05),
-            Container(
-              width: screenWidth * 0.6,
-              height: screenWidth * 0.6,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                image: const DecorationImage(
-                  image: AssetImage('assets/profile_image.png'),
-                  fit: BoxFit.cover,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    offset: Offset(0, screenHeight * 0.11),
-                    blurRadius: screenWidth * 0.1,
-                    color: Color.fromARGB(2, 30, 15, 15),
-                  ),
-                  BoxShadow(
-                    offset: Offset(0, screenHeight * 0.0625),
-                    blurRadius: screenWidth * 0.075,
-                    color: const Color.fromRGBO(0, 0, 0, 0.05),
-                  ),
-                  BoxShadow(
-                    offset: Offset(0, screenHeight * 0.0275),
-                    blurRadius: screenWidth * 0.055,
-                    color: const Color.fromRGBO(0, 0, 0, 0.09),
-                  ),
-                  BoxShadow(
-                    offset: Offset(0, screenHeight * 0.015),
-                    blurRadius: screenWidth * 0.03,
-                    color: const Color.fromRGBO(0, 0, 0, 0.1),
-                  ),
-                ],
-              ),
+            FutureBuilder<DocumentSnapshot>(
+              future: FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(FirebaseAuth.instance.currentUser!.uid)
+                  .get(),
+              builder: (BuildContext context,
+                  AsyncSnapshot<DocumentSnapshot> snapshot) {
+                if (snapshot.connectionState == ConnectionState.done) {
+                  Map<String, dynamic> data =
+                      snapshot.data!.data() as Map<String, dynamic>;
+                  String name = data['name'] ?? '';
+                  return CircleAvatar(
+                    radius: 50,
+                    child: Text(
+                      name.isNotEmpty ? name[0].toUpperCase() : '',
+                      style: TextStyle(fontSize: 40),
+                    ),
+                  );
+                }
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return CircularProgressIndicator();
+                }
+                return Text('Error: ${snapshot.error}');
+              },
             ),
-            SizedBox(height: screenHeight * 0.02),
             TextButton(
               onPressed: () {
                 showModalBottomSheet(
@@ -125,85 +149,127 @@ class _EditProfileState extends State<EditProfile> {
                 ),
               ),
             ),
-            SizedBox(height: screenHeight * 0.05),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
-              child: TextField(
-                decoration: InputDecoration(
-                  labelText: 'Name',
-                  labelStyle: TextStyle(
-                    fontFamily: 'Roboto',
-                    fontWeight: FontWeight.w500,
-                    fontSize: screenWidth * 0.03055,
-                    color: Colors.black,
+              padding: const EdgeInsets.all(8.0),
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    children: [
+                      FutureBuilder<DocumentSnapshot>(
+                        future: FirebaseFirestore.instance
+                            .collection('users')
+                            .doc(FirebaseAuth.instance.currentUser!.uid)
+                            .get(),
+                        builder: (BuildContext context,
+                            AsyncSnapshot<DocumentSnapshot> snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.done) {
+                            Map<String, dynamic> data =
+                                snapshot.data!.data() as Map<String, dynamic>;
+                            return Column(
+                              children: [
+                                TextField(
+                                  controller:
+                                      TextEditingController(text: data['name']),
+                                  decoration: InputDecoration(
+                                    // filled: true,
+                                    labelText: 'Name',
+                                    // Rest of your code...
+                                  ),
+                                ),
+                                // const SizedBox(height: 10),
+                                TextField(
+                                  controller: TextEditingController(
+                                      text: data['email']),
+                                  decoration: InputDecoration(
+                                    // filled: true,
+                                    labelText: 'Email',
+                                    // Rest of your code...
+                                  ),
+                                ),
+                                // const SizedBox(height: 10),
+
+                                TextField(
+                                  controller: TextEditingController(
+                                      text: data['username']),
+                                  decoration: InputDecoration(
+                                    // filled: true,
+                                    labelText: 'Username',
+                                    // Rest of your code...
+                                  ),
+                                ),
+                                // const SizedBox(height: 10),
+
+                                // Rest of your code...
+                              ],
+                            );
+                          }
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return CircularProgressIndicator();
+                          }
+                          return Text('Error: ${snapshot.error}');
+                        },
+                      ),
+                      TextField(
+                        controller: phoneNumberController,
+                        keyboardType: TextInputType.phone,
+                        decoration: InputDecoration(
+                          // filled: true,
+                          labelText: 'Phone Number',
+                        ),
+                      ),
+                      // const SizedBox(height: 10),
+                      TextFormField(
+                        controller: dobController,
+                        decoration: InputDecoration(
+                          // filled: true,
+                          labelText: 'Date of Birth',
+                        ),
+                        focusNode: dobNode,
+                        onTap: () async {
+                          // Prevent the keyboard from showing
+                          FocusScope.of(context).requestFocus(new FocusNode());
+
+                          // Show the date picker
+                          final date = await showDatePicker(
+                            context: context,
+                            initialDate: DateTime.now(),
+                            firstDate: DateTime(1900),
+                            lastDate: DateTime.now(),
+                          );
+
+                          // Update the text of the controller with the selected date
+                          if (date != null) {
+                            dobController.text =
+                                DateFormat('yyyy-MM-dd').format(date);
+                          }
+
+                          // Prevent the form from validating when the date picker is shown
+                          dobNode.unfocus();
+                        },
+                      ),
+                      // const SizedBox(height: 10),
+                      TextField(
+                        controller: genderController,
+                        decoration: InputDecoration(
+                          // filled: true,
+                          labelText: 'Gender',
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: () {
+                          saveData();
+                        },
+                        child: Text('Save Profile'),
+                      ),
+                    ],
                   ),
-                  filled: true,
-                  fillColor: Colors.blue.shade50,
                 ),
               ),
             ),
-            SizedBox(height: screenHeight * 0.025),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
-              child: DropdownButtonFormField<String>(
-                decoration: InputDecoration(
-                  labelText: 'Gender',
-                  labelStyle: TextStyle(
-                    fontFamily: 'Roboto',
-                    fontWeight: FontWeight.w500,
-                    fontSize: screenWidth * 0.03055,
-                    color: Colors.black,
-                  ),
-                  filled: true,
-                  fillColor: Colors.blue.shade50,
-                ),
-                value: _selectedGender,
-                onChanged: (String? newValue) {
-                  setState(() {
-                    _selectedGender = newValue;
-                  });
-                },
-                items: <String>['Male', 'Female']
-                    .map<DropdownMenuItem<String>>((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-              ),
-            ),
-            SizedBox(height: screenHeight * 0.025),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
-              child: TextField(
-                decoration: InputDecoration(
-                  labelText: 'Update Address',
-                  labelStyle: TextStyle(
-                    fontFamily: 'Roboto',
-                    fontWeight: FontWeight.w500,
-                    fontSize: screenWidth * 0.03055,
-                    color: Colors.black,
-                  ),
-                  filled: true,
-                  fillColor: Colors.blue.shade50,
-                ),
-              ),
-            ),
-            SizedBox(height: screenHeight * 0.025),
-            ElevatedButton.icon(
-              onPressed: () {},
-              icon: const Icon(Icons.check),
-              label: const Text('Submit'),
-              style: ElevatedButton.styleFrom(
-                foregroundColor: const Color(0xFF1E1E1E),
-                backgroundColor: Colors.white,
-                side: const BorderSide(color: Color(0xFF1E1E1E)),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(screenWidth * 0.01667),
-                ),
-              ),
-            ),
-            SizedBox(height: screenHeight * 0.05),
           ],
         ),
       ),

@@ -91,7 +91,7 @@ class CardNotice extends StatelessWidget {
                     foregroundColor: Colors.black,
                     backgroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                   ),
                   child: const Text('Message'),

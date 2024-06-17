@@ -13,29 +13,26 @@ class SmallCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {},
-      child: Card(
-        color: Colors.blue.shade100,
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: SizedBox(
-            height: 120,
-            width: 100,
-            child: Column(
-              children: [
-                Image.asset(image, height: 80, width: 70),
-                const SizedBox(height: 12),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600, // semibold
-                    fontSize: 16,
-                  ),
-                  textAlign: TextAlign.center,
+    return Card(
+      color: Colors.blue.shade100,
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: SizedBox(
+          height: 120,
+          width: 100,
+          child: Column(
+            children: [
+              Image.asset(image, height: 80, width: 70),
+              const SizedBox(height: 12),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600, // semibold
+                  fontSize: 16,
                 ),
-              ],
-            ),
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
         ),
       ),
